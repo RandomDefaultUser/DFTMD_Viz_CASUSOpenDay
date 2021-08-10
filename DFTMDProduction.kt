@@ -24,7 +24,7 @@ class DFTMDProduction : SceneryBase("DFTExample", wantREPL = System.getProperty(
         renderer = hub.add(SceneryElement.Renderer,
             Renderer.createRenderer(hub, applicationName, scene, 512, 512))
         val snapshot = DFTParser(normalizeDensityTo= 0.2f)
-        snapshot.parseCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density/" +
+        snapshot.parseCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density_02/" +
             "Be_dens0000.cube")
 
         // Scales the DFT coordinates (which are in Bohr units) for a better VR experience.
@@ -80,8 +80,11 @@ class DFTMDProduction : SceneryBase("DFTExample", wantREPL = System.getProperty(
             scene.addChild(this)
         }
 
+        // Don't start with the first crystalline snapshots, the electronic density
+        // is very localized in that ones.
+        val firstSnapshot = 100
         var currentSnapshot = 0
-        val maxSnapshot = 10
+        val maxSnapshot = 5932
         var count = 0
         thread {
             while (running) {
@@ -89,6 +92,7 @@ class DFTMDProduction : SceneryBase("DFTExample", wantREPL = System.getProperty(
                 val snapshotNumber = currentSnapshot.toString().padStart(4, '0')
                 snapshot.parseCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density/" +
                     "Be_dens${snapshotNumber}.cube")
+                println(snapshotNumber)
                 // Visualize the atoms.
                 for(i in 0 until snapshot.numberOfAtoms) {
                     // Shift the positions since the positions from the cube file are centers.
@@ -103,7 +107,7 @@ class DFTMDProduction : SceneryBase("DFTExample", wantREPL = System.getProperty(
                 count++
                 if (currentSnapshot == maxSnapshot)
                 {
-                    currentSnapshot = 0
+                    currentSnapshot = firstSnapshot
                 }
             }
         }
