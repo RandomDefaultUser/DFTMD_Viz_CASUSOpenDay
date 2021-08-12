@@ -1,6 +1,7 @@
 # DFT-MD trajectory visualization for CASUS OpenDay
 
-This is a visualization script/project to visualize a DFT-MD trajectory for the CASUS Open Day.
+This is a visualization script/project to visualize a DFT-MD trajectory for the CASUS Open Day using scenery [scenery](https://scenery.graphics).
+The gradle configuration of this project was created using the [minimal example](https://github.com/scenerygraphics/minimal-scenery-example-project) provided by the scenery developers.
 
 ## Description
 
