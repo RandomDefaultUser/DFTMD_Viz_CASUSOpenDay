@@ -15,11 +15,11 @@ import kotlin.concurrent.thread
 
 /**
  * <Description>
- *  Visualizes a DFT snapshot.
+ *  Visualizes a DFT trajectory.
  *
  * @author Lenz Fiedler <l.fiedler@hzdr.de>
  */
-class DFTMDProduction : SceneryBase("DFTExample", wantREPL = System.getProperty("scenery.master", "false").toBoolean()) {
+class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = System.getProperty("scenery.master", "false").toBoolean()) {
     override fun init() {
         renderer = hub.add(SceneryElement.Renderer,
             Renderer.createRenderer(hub, applicationName, scene, 512, 512))
