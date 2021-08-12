@@ -7,6 +7,7 @@ The gradle configuration of this project was created using the [minimal example]
 
 The main class of the project resides in `src/main/kotlin/graphics/scenery/DFTMDVisualizationCASUSOpenDay.kt`, while the Gradle build configuration is specified in `build.gradle.kts`.
 This visualization is intended to be used with electronic density cube files from a trajectory of a Beryllium super cell with 128 atoms at the melting point (1560 K). The data set can be provided if desired - the reason I am not hosting it is purely due to size limitations. If you are interested, I'll gladly work with you to give you access to it.
+The data path are hard coded into the file. If you want to run the file, make sure to change the paths beforehand. 
 
 ## Building and running
 

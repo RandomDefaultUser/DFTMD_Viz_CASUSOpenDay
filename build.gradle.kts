@@ -20,7 +20,7 @@ repositories {
 dependencies {
     // you can use either Git hashes here to identify a version,
     // or version tags from https://github.com/scenerygraphics/scenery/releases
-    implementation("graphics.scenery:scenery:57dc16fc0c")
+    implementation("com.github.RandomDefaultUser:scenery:3005f85")
 
     implementation(kotlin("stdlib-jdk8"))
 

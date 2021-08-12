@@ -83,7 +83,7 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
         // Don't start with the first crystalline snapshots, the electronic density
         // is very localized in that ones.
         val firstSnapshot = 100
-        var currentSnapshot = 0
+        var currentSnapshot = firstSnapshot
         val maxSnapshot = 5932
         var count = 0
         thread {
@@ -92,7 +92,7 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
                 val snapshotNumber = currentSnapshot.toString().padStart(4, '0')
                 snapshot.parseCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density/" +
                     "Be_dens${snapshotNumber}.cube")
-                println(snapshotNumber)
+
                 // Visualize the atoms.
                 for(i in 0 until snapshot.numberOfAtoms) {
                     // Shift the positions since the positions from the cube file are centers.
@@ -116,7 +116,7 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            DFTMDProduction().main()
+            DFTMDVisualizationCASUSOpenDay().main()
         }
     }
 }
