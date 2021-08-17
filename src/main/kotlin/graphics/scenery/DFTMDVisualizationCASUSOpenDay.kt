@@ -3,10 +3,6 @@ package graphics.scenery.tests.examples.basic
 import org.joml.Vector3f
 import graphics.scenery.*
 import graphics.scenery.backends.Renderer
-import graphics.scenery.numerics.Random
-import graphics.scenery.textures.Texture
-import graphics.scenery.utils.Image
-import graphics.scenery.utils.extensions.plus
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
 import graphics.scenery.volumes.Volume
@@ -34,11 +30,17 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
         val atomicRadius = 0.5f*scalingFactor
         val atoms: Array<Icosphere> = Array<Icosphere>(snapshot.numberOfAtoms) {Icosphere(atomicRadius, 4)}
         for(i in 0 until snapshot.numberOfAtoms) {
-            // Shift the positions since the positions from the cube file are centers.
-            atoms[i].position = (snapshot.atomicPositions[i]).mul(scalingFactor)
-            atoms[i].material.metallic = 0.3f
-            atoms[i].material.roughness = 0.6f
-            atoms[i].material.diffuse = Vector3f(0.7f, 0.5f, 0.5f)
+            with(atoms[i])
+            {
+                spatial{
+                    position = (snapshot.atomicPositions[i]).mul(scalingFactor)
+                }
+                material{
+                    metallic = 0.3f
+                    roughness = 0.6f
+                    diffuse = Vector3f(0.7f, 0.5f, 0.5f)
+                }
+            }
             scene.addChild(atoms[i])
         }
 
@@ -49,7 +51,7 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
         volume.name = "volume"
         // Note: Volumes centered at the origin are currently offset by -2.0 in each direction
         // (see Volume.kt, line 338), so we're adding 2.0 here.
-        volume.position = (Vector3f(snapshot.unitCellOrigin[0],snapshot.unitCellOrigin[1],
+        volume.spatial().position = (Vector3f(snapshot.unitCellOrigin[0],snapshot.unitCellOrigin[1],
             snapshot.unitCellOrigin[2]).mul(scalingFactor)).add(
             Vector3f(2.0f, 2.0f, 2.0f))
         volume.colormap = Colormap.get("viridis")
@@ -64,7 +66,7 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
         }
         lights.mapIndexed { i, light ->
             val permutation = String.format("%3s", Integer.toBinaryString(i)).replace(' ', '0')
-            light.position = Vector3f(snapshot.unitCellDimensions[0] * (permutation[0].code-48) ,
+            light.spatial().position = Vector3f(snapshot.unitCellDimensions[0] * (permutation[0].code-48) ,
                                       snapshot.unitCellDimensions[1] * (permutation[1].code-48),
                                       snapshot.unitCellDimensions[2] * (permutation[2].code-48))
             light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
@@ -74,7 +76,9 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
 
         val cam: Camera = DetachedHeadCamera()
         with(cam) {
-            position = Vector3f(0.0f, 0.0f, 5.0f)
+            spatial {
+                position = Vector3f(0.0f, 0.0f, 5.0f)
+            }
             perspectiveCamera(50.0f, 512, 512)
 
             scene.addChild(this)
@@ -95,8 +99,7 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
 
                 // Visualize the atoms.
                 for(i in 0 until snapshot.numberOfAtoms) {
-                    // Shift the positions since the positions from the cube file are centers.
-                    atoms[i].position = (snapshot.atomicPositions[i]).mul(scalingFactor)
+                    atoms[i].spatial().position = (snapshot.atomicPositions[i]).mul(scalingFactor)
                 }
 
                 volume.addTimepoint("t-${count}", snapshot.electronicDensityUInt)
