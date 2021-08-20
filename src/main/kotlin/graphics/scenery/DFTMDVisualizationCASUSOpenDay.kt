@@ -2,6 +2,7 @@ package graphics.scenery.tests.examples.basic
 
 import org.joml.Vector3f
 import graphics.scenery.*
+import graphics.scenery.utils.extensions.*
 import graphics.scenery.backends.Renderer
 import graphics.scenery.volumes.Colormap
 import graphics.scenery.volumes.TransferFunction
@@ -29,11 +30,10 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
         // Visualize the atoms.
         val atomicRadius = 0.5f*scalingFactor
         val atoms: Array<Icosphere> = Array<Icosphere>(snapshot.numberOfAtoms) {Icosphere(atomicRadius, 4)}
-        for(i in 0 until snapshot.numberOfAtoms) {
-            with(atoms[i])
-            {
+        atoms.zip(snapshot.atomicPositions).forEach {
+            with(it.component1()){
                 spatial{
-                    position = (snapshot.atomicPositions[i]).mul(scalingFactor)
+                    position = scalingFactor * it.component2()
                 }
                 material{
                     metallic = 0.3f
@@ -41,7 +41,7 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
                     diffuse = Vector3f(0.7f, 0.5f, 0.5f)
                 }
             }
-            scene.addChild(atoms[i])
+            scene.addChild(it.component1())
         }
 
         // Visualize the density data.
@@ -51,8 +51,8 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
         volume.name = "volume"
         // Note: Volumes centered at the origin are currently offset by -2.0 in each direction
         // (see Volume.kt, line 338), so we're adding 2.0 here.
-        volume.spatial().position = (Vector3f(snapshot.unitCellOrigin[0],snapshot.unitCellOrigin[1],
-            snapshot.unitCellOrigin[2]).mul(scalingFactor)).add(
+        volume.spatial().position = (scalingFactor * Vector3f(snapshot.unitCellOrigin[0],snapshot.unitCellOrigin[1],
+            snapshot.unitCellOrigin[2])).add(
             Vector3f(2.0f, 2.0f, 2.0f))
         volume.colormap = Colormap.get("viridis")
         volume.pixelToWorldRatio = snapshot.gridSpacings[0]*scalingFactor
@@ -98,14 +98,14 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
                     "Be_dens${snapshotNumber}.cube")
 
                 // Visualize the atoms.
-                for(i in 0 until snapshot.numberOfAtoms) {
-                    atoms[i].spatial().position = (snapshot.atomicPositions[i]).mul(scalingFactor)
-                }
+                atoms.zip(snapshot.atomicPositions).forEach {
+                    it.component1().spatial().position = scalingFactor * it.component2()
 
-                volume.addTimepoint("t-${count}", snapshot.electronicDensityUInt)
+                }
+                volume.addTimepoint("t-${count}", snapshot.electronicDensityUByte)
                 volume.goToLastTimepoint()
                 volume.purgeFirst(10, 10)
-                Thread.sleep(10)
+                Thread.sleep(33)
                 currentSnapshot++
                 count++
                 if (currentSnapshot == maxSnapshot)
