@@ -2,6 +2,8 @@ package graphics.scenery.tests.examples.basic
 
 import org.joml.Vector3f
 import graphics.scenery.*
+import graphics.scenery.attribute.material.DefaultMaterial
+import graphics.scenery.attribute.material.Material
 import graphics.scenery.utils.extensions.*
 import graphics.scenery.backends.Renderer
 import graphics.scenery.volumes.Colormap
@@ -20,44 +22,21 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
     override fun init() {
         renderer = hub.add(SceneryElement.Renderer,
             Renderer.createRenderer(hub, applicationName, scene, 512, 512))
-        val snapshot = DFTParser(normalizeDensityTo= 0.2f)
-        snapshot.parseCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density_02/" +
-            "Be_dens0000.cube")
 
-        // Scales the DFT coordinates (which are in Bohr units) for a better VR experience.
         val scalingFactor = 0.5f
+        val atomicSimulation = AtomicSimulation.fromCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density_02/" +
+            "Be_dens0000.cube", hub, scalingFactor, 0.5f, normalizeVolumetricDataTo = 0.2f,
+            cubeStyle = "QE")
+        scene.addChild(atomicSimulation)
 
-        // Visualize the atoms.
-        val atomicRadius = 0.5f*scalingFactor
-        val atoms: Array<Icosphere> = Array<Icosphere>(snapshot.numberOfAtoms) {Icosphere(atomicRadius, 4)}
-        atoms.zip(snapshot.atomicPositions).forEach {
-            with(it.component1()){
-                spatial{
-                    position = scalingFactor * it.component2()
-                }
-                material{
-                    metallic = 0.3f
-                    roughness = 0.6f
-                    diffuse = Vector3f(0.7f, 0.5f, 0.5f)
-                }
-            }
-            scene.addChild(it.component1())
-        }
-
-        // Visualize the density data.
-        val volume = Volume.fromBuffer(emptyList(), snapshot.gridDimensions[0], snapshot.gridDimensions[1],
-                                        snapshot.gridDimensions[2], UnsignedByteType(), hub)
-
-        volume.name = "volume"
-        // Note: Volumes centered at the origin are currently offset by -2.0 in each direction
-        // (see Volume.kt, line 338), so we're adding 2.0 here.
-        volume.spatial().position = (scalingFactor * Vector3f(snapshot.unitCellOrigin[0],snapshot.unitCellOrigin[1],
-            snapshot.unitCellOrigin[2])).add(
-            Vector3f(2.0f, 2.0f, 2.0f))
-        volume.colormap = Colormap.get("viridis")
-        volume.pixelToWorldRatio = snapshot.gridSpacings[0]*scalingFactor
-        volume.transferFunction = TransferFunction.ramp(0.1f, 0.2f, 0.5f)
-        scene.addChild(volume)
+        // Customize the atomic simulation.
+        val atomicMaterial = DefaultMaterial.Material()
+        atomicMaterial.metallic = 0.3f
+        atomicMaterial.roughness = 0.6f
+        atomicMaterial.diffuse = Vector3f(0.7f, 0.5f, 0.5f)
+        atomicSimulation.updateAtomicMaterial(atomicMaterial)
+        atomicSimulation.volumetricData.colormap = Colormap.get("viridis")
+        atomicSimulation.volumetricData.transferFunction = TransferFunction.ramp(0.1f, 0.2f, 0.5f)
 
 
         // One light in every corner.
@@ -66,9 +45,9 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
         }
         lights.mapIndexed { i, light ->
             val permutation = String.format("%3s", Integer.toBinaryString(i)).replace(' ', '0')
-            light.spatial().position = Vector3f(snapshot.unitCellDimensions[0] * (permutation[0].code-48) ,
-                                      snapshot.unitCellDimensions[1] * (permutation[1].code-48),
-                                      snapshot.unitCellDimensions[2] * (permutation[2].code-48))
+            light.spatial().position = Vector3f(atomicSimulation.simulationData.unitCellDimensions[0] * (permutation[0].code-48) ,
+                atomicSimulation.simulationData.unitCellDimensions[1] * (permutation[1].code-48),
+                atomicSimulation.simulationData.unitCellDimensions[2] * (permutation[2].code-48))
             light.emissionColor = Vector3f(1.0f, 1.0f, 1.0f)
             light.intensity = 1.0f
             scene.addChild(light)
@@ -89,25 +68,14 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
         val firstSnapshot = 100
         var currentSnapshot = firstSnapshot
         val maxSnapshot = 5932
-        var count = 0
         thread {
             while (running) {
                 // Read new MD snapshot.
                 val snapshotNumber = currentSnapshot.toString().padStart(4, '0')
-                snapshot.parseCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density/" +
-                    "Be_dens${snapshotNumber}.cube")
-
-                // Visualize the atoms.
-                atoms.zip(snapshot.atomicPositions).forEach {
-                    it.component1().spatial().position = scalingFactor * it.component2()
-
-                }
-                volume.addTimepoint("t-${count}", snapshot.electronicDensityUByte)
-                volume.goToLastTimepoint()
-                volume.purgeFirst(10, 10)
+                atomicSimulation.updateFromCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density/" +
+                        "Be_dens${snapshotNumber}.cube")
                 Thread.sleep(33)
                 currentSnapshot++
-                count++
                 if (currentSnapshot == maxSnapshot)
                 {
                     currentSnapshot = firstSnapshot
