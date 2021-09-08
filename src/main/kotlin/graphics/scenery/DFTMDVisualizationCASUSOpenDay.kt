@@ -72,7 +72,7 @@ class DFTMDVisualizationCASUSOpenDay : SceneryBase("DFTExample", wantREPL = Syst
             while (running) {
                 // Read new MD snapshot.
                 val snapshotNumber = currentSnapshot.toString().padStart(4, '0')
-                atomicSimulation.updateFromCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density/" +
+                atomicSimulation.updateFromCube("/home/fiedlerl/data/qe_calcs/Be128/1560K/MD_with_charge_density_02/" +
                         "Be_dens${snapshotNumber}.cube")
                 Thread.sleep(33)
                 currentSnapshot++
